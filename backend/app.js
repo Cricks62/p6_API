@@ -1,7 +1,9 @@
 const express = require('express');
+const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 
-const ModelSauce = require('./models/ModelSauce');
+const sauceRoutes = require('./routes/sauce');
+const userRoutes = require('./routes/user');
 
 
 mongoose.connect('mongodb+srv://Clement:cergy95800@clusters.zpluytu.mongodb.net/test?retryWrites=true&w=majority',
@@ -19,6 +21,11 @@ app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
     next();
   });
+
+app.use(bodyParser.json());
+
+app.use('/api/stuff', sauceRoutes);
+app.use('/api/auth', userRoutes);
 
 
 module.exports = app;
