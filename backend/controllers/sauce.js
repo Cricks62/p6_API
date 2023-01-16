@@ -72,10 +72,40 @@ exports.getAllSauces = (req, res, next) => {
 exports.likeDislike = (req, res, next) => {
   const like = req.body.like;
   if (like === 1) {
-
-  } else if (like === -1){
-
-  } else if (like === 0) {
-
-  }
-}
+    // code pour ajouter un like
+    Sauces.updateOne({ _id: req.params.id },{ $inc: { likes: +1 }, $push: { usersLiked: req.body.userId }})
+      .then(() => {
+        res.status(201).json({ message: 'Vous aimer la sauce'})
+      })
+      .catch((error) => res.status(400).json( error ));
+  } else if (like === -1) {
+    // code pour ajouter un dislike
+    Sauces.updateOne({ _id:req.params.id }, {$inc: {dislikes: +1}, $push: { usersDisliked: req.body.userId }})
+      .then(() => {
+        res.status(201).json({message: "Vous n'aimer pas la sauce"})
+      })
+      .catch((error) => res.status(400).json( error ));
+    } else if (like === 0) {
+      Sauces.findOne({ _id: req.params.id, usersLiked: req.body.userId })
+        .then(sauce => {
+          if (sauce) {
+            // Si l'utilisateur a aimé la sauce, on décrémente les likes et on supprime l'utilisateur de la liste des utilisateurs qui ont aimé la sauce
+            Sauces.updateOne({ _id: req.params.id }, { $inc: { likes: -1 }, $pull: { usersLiked: req.body.userId } })
+              .then(() => {
+                res.status(201).json({ message: 'Like supprimé' });
+              })
+              .catch((error) => res.status(400).json(error));
+          } else {
+            // si l'utilisateur n'a pas aimé la sauce, on décrémente les dislikes et on supprime l'utilisateur de la liste des utilisateurs qui n'ont pas aimé la sauce
+            Sauces.updateOne({ _id: req.params.id }, { $inc: { dislikes: -1 }, $pull: { usersDisliked: req.body.userId } })
+              .then(() => {
+                res.status(201).json({ message: 'Dislike supprimé' });
+              })
+              .catch((error) => res.status(400).json(error));
+          }
+        })
+        .catch((error) => {
+          res.status(400).json( error );
+        });
+    }
+  };
